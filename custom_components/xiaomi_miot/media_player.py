@@ -344,6 +344,7 @@ class MitvMediaPlayerEntity(MiotMediaPlayerEntity):
         self._keycodes = [
             'power',
             'home',
+            'menu',
             'enter',
             'back',
             'up',
@@ -430,6 +431,22 @@ class MitvMediaPlayerEntity(MiotMediaPlayerEntity):
         if not self._state_attrs.get('6095_state') and self.conn_mode != 'cloud':
             sta = STATE_OFF
         return sta
+
+    def turn_on(self):
+        if eid := self.custom_config('bind_xiaoai'):
+            nam = self.device_info.get('name')
+            nam = self.custom_config('television_name', nam)
+            if not nam:
+                sta = self.hass.states.get(self.entity_id)
+                nam = sta.attributes.get(ATTR_FRIENDLY_NAME)
+            if nam and self.hass.states.get(eid):
+                self.hass.services.call(DOMAIN, 'intelligent_speaker', {
+                    'entity_id': eid,
+                    'text': f'打开{nam}',
+                    'execute': True,
+                    'silent': self.custom_config_bool('xiaoai_silent', True),
+                })
+        return super().turn_on()
 
     @property
     def device_class(self):

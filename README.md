@@ -12,6 +12,8 @@ English | [简体中文](https://github.com/al-one/hass-xiaomi-miot/blob/master/
 
 This component uses the **miot** protocol to automatically integrate Xiaomi devices into [HomeAssistant](https://www.home-assistant.io), and currently supports most Xiaomi IoT devices. And it supports HA Web UI, and you can easily integrate Xiaomi devices into HA without configuring yaml.
 
+![hass-xiaomi-miot-configs](https://user-images.githubusercontent.com/4549099/142151697-5188ea2d-0aad-4778-8b60-b949bcc410bb.png)
+
 
 ## Installing
 
@@ -113,6 +115,9 @@ domain.parent_entity_id:
   fan_properties: mode,fan_level
   cover_properties: motor_control
 
+light.your_entity_id:
+  color_temp_reverse: false # Reverse color temperature (Requires reload config entry)
+
 climate.your_entity_id:
   bind_sensor: sensor.temperature_entity,sensor.humidity_entity # Sensor entities
 
@@ -121,11 +126,15 @@ camera.your_entity_id:
   keep_streaming: true # Continuously update stream address
 
 cover.your_entity_id:
-  closed_position: 5   # Change cover state to closed when position <= 5%
-  deviated_position: 2 # Current position deviation 2% -> 0%, 98% -> 100%
-  motor_reverse: true  # Reverse motor state
+  closed_position: 5     # Change cover state to closed when position <= 5%
+  deviated_position: 2   # Current position deviation 2% -> 0%, 98% -> 100%
+  motor_reverse: true    # Reverse motor state (Requires reload config entry)
+  position_reverse: true # Reverse motor position (Requires reload config entry)
   open_texts: Open,Up
   close_texts: Close,Down
+
+media_player.mitv_entity_id:
+  bind_xiaoai: media_player.xiaoai_entity_id # Bind xiaoai speaker for turn on TV
 
 doamin.your_entity_id:
   interval_seconds: 30 # Seconds between each update state (Requires reload config entry)
@@ -140,44 +149,121 @@ doamin.your_entity_id:
 
 ## [Supported Devices](https://github.com/al-one/hass-xiaomi-miot/issues/12)
 
-- [outlet](https://home.miot-spec.com/s/plug) / [switch](https://home.miot-spec.com/s/switch)
-- [light](https://home.miot-spec.com/s/light)
-- [air-conditioner](https://home.miot-spec.com/s/aircondition) / [air-conditioner-outlet](https://home.miot-spec.com/s/acpartner) / [thermostat](https://home.miot-spec.com/s/airrtc)
-- [fan](https://home.miot-spec.com/s/fan) / [ceiling-fan](https://home.miot-spec.com/s/ven_fan)
-- [bath-heater](https://home.miot-spec.com/s/bhf_light) / [heater](https://home.miot-spec.com/s/heater)
-- [camera](https://home.miot-spec.com/s/camera) / [video-doorbell](https://home.miot-spec.com/s/cateye) [❓️](https://github.com/al-one/hass-xiaomi-miot/issues/100#issuecomment-903078604)
-- [television](https://home.miot-spec.com/s/tv) / [projector](https://home.miot-spec.com/s/projector) / [tv-box](https://home.miot-spec.com/s/tvbox)
-- [intelligent-speaker](https://home.miot-spec.com/s/wifispeaker) [❓️](https://github.com/al-one/hass-xiaomi-miot/issues/100#issuecomment-885989099)
-- [ir-remote-control](https://home.miot-spec.com/s/chuangmi.remote) [❓️](https://github.com/al-one/hass-xiaomi-miot/commit/fbcc8063783e53b9480574536a034d338634f4e8#commitcomment-56563663)
-- [lock](https://home.miot-spec.com/s/look) / [door](https://home.miot-spec.com/s/door)
-- [washer](https://home.miot-spec.com/s/washer) / [fridge](https://home.miot-spec.com/s/fridge)
-- [water-purifier](https://home.miot-spec.com/s/waterpuri) / [kettle](https://home.miot-spec.com/s/kettle)
-- [air-purifier](https://home.miot-spec.com/s/airpurifier) / [air-fresh](https://home.miot-spec.com/s/airfresh)
-- [temperature-humidity-sensor](https://home.miot-spec.com/s/sensor_ht) / [submersion-sensor](https://home.miot-spec.com/s/flood) / [smoke-sensor](https://home.miot-spec.com/s/sensor_smoke)
-- [cooker](https://home.miot-spec.com/s/cooker) / [pressure-cooker](https://home.miot-spec.com/s/pre_cooker)
-- [induction-cooker](https://home.miot-spec.com/s/ihcooker) / [oven](https://home.miot-spec.com/s/oven) / [microwave](https://home.miot-spec.com/s/microwave)
-- [air-fryer](https://home.miot-spec.com/s/fryer) / [multifunction-cooking-pot](https://home.miot-spec.com/s/mfcp)
-- [health-pot](https://home.miot-spec.com/s/health_pot) / [coffee-machine](https://home.miot-spec.com/s/coffee)
-- [juicer](https://home.miot-spec.com/s/juicer)
-- [water-heater](https://home.miot-spec.com/s/waterheater) / [hood](https://home.miot-spec.com/s/hood) / [dishwasher](https://home.miot-spec.com/s/dishwasher)
-- [curtain](https://home.miot-spec.com/s/curtain) / [window-opener](https://home.miot-spec.com/s/wopener) / [airer](https://home.miot-spec.com/s/airer)
-- [vacuum](https://home.miot-spec.com/s/vacuum)
-- [humidifier](https://home.miot-spec.com/s/humidifier) / [dehumidifier](https://home.miot-spec.com/s/derh)
-- [air-monitor](https://home.miot-spec.com/s/airmonitor) / [plant-monitor](https://home.miot-spec.com/s/plantmonitor)
-- [bed](https://home.miot-spec.com/s/bed) / [blanket](https://home.miot-spec.com/s/blanket) / [sleep-monitor](https://home.miot-spec.com/s/lunar)
-- [massager](https://home.miot-spec.com/s/massage) / [magic-touch](https://home.miot-spec.com/s/magic_touch)
-- [walking-pad](https://home.miot-spec.com/s/walkingpad)
-- [toilet](https://home.miot-spec.com/s/toilet)
-- [towel-rack](https://home.miot-spec.com/s/.tow)
-- [pet-feeder](https://home.miot-spec.com/s/feeder) / [pet-drinking-fountain](https://home.miot-spec.com/s/pet_waterer)
-- [fish-tank](https://home.miot-spec.com/s/fishbowl)
-- [mosquito-dispeller](https://home.miot-spec.com/s/mosq) / [germicidal-lamp](https://home.miot-spec.com/s/s_lamp)
-- [rearview-mirror](https://home.miot-spec.com/s/rv_mirror)
-- [watch](https://home.miot-spec.com/s/watch)
-- [motion-sensor](https://home.miot-spec.com/s/motion) / [magnet-sensor](https://home.miot-spec.com/s/magnet) [❓️](https://github.com/al-one/hass-xiaomi-miot/issues/100#issuecomment-909031222)
-- [vibration-sensor](https://home.miot-spec.com/s/vibration)
-- [router](https://home.miot-spec.com/s/router)
-- [printer](https://home.miot-spec.com/s/printer)
+- 🔌 [outlet](https://home.miot-spec.com/s/plug) / [switch](https://home.miot-spec.com/s/switch)
+- 💡 [light](https://home.miot-spec.com/s/light)
+- ❄️ [air-conditioner](https://home.miot-spec.com/s/aircondition) / [air-conditioner-outlet](https://home.miot-spec.com/s/acpartner) / [thermostat](https://home.miot-spec.com/s/airrtc)
+- 🌀 [fan](https://home.miot-spec.com/s/fan) / [ceiling-fan](https://home.miot-spec.com/s/ven_fan)
+- 🛀 [bath-heater](https://home.miot-spec.com/s/bhf_light) / 🔥 [heater](https://home.miot-spec.com/s/heater)
+- 📷 [camera](https://home.miot-spec.com/s/camera) / [video-doorbell](https://home.miot-spec.com/s/cateye) [❓️](https://github.com/al-one/hass-xiaomi-miot/issues/100#issuecomment-903078604)
+- 📺 [television](https://home.miot-spec.com/s/tv) / 📽️ [projector](https://home.miot-spec.com/s/projector) / [tv-box](https://home.miot-spec.com/s/tvbox)
+- 🗣️ [intelligent-speaker](https://home.miot-spec.com/s/wifispeaker) [❓️](https://github.com/al-one/hass-xiaomi-miot/issues/100#issuecomment-885989099)
+- 🎮️ [ir-remote-control](https://home.miot-spec.com/s/chuangmi.remote) [❓️](https://github.com/al-one/hass-xiaomi-miot/commit/fbcc8063783e53b9480574536a034d338634f4e8#commitcomment-56563663)
+- 🔐 [lock](https://home.miot-spec.com/s/look) / 🚪 [door](https://home.miot-spec.com/s/door)
+- 👕 [washer](https://home.miot-spec.com/s/washer) / [fridge](https://home.miot-spec.com/s/fridge)
+- 🚰 [water-purifier](https://home.miot-spec.com/s/waterpuri) / [kettle](https://home.miot-spec.com/s/kettle)
+- ♻️ [air-purifier](https://home.miot-spec.com/s/airpurifier) / [air-fresh](https://home.miot-spec.com/s/airfresh)
+- 🌡 [temperature-humidity-sensor](https://home.miot-spec.com/s/sensor_ht) / [submersion-sensor](https://home.miot-spec.com/s/flood) / [smoke-sensor](https://home.miot-spec.com/s/sensor_smoke)
+- 🥘 [cooker](https://home.miot-spec.com/s/cooker) / [pressure-cooker](https://home.miot-spec.com/s/pre_cooker)
+- 🍲 [induction-cooker](https://home.miot-spec.com/s/ihcooker) / [oven](https://home.miot-spec.com/s/oven) / [microwave](https://home.miot-spec.com/s/microwave)
+- 🍗 [air-fryer](https://home.miot-spec.com/s/fryer) / [multifunction-cooking-pot](https://home.miot-spec.com/s/mfcp)
+- 🍵 [health-pot](https://home.miot-spec.com/s/health_pot) / ☕️ [coffee-machine](https://home.miot-spec.com/s/coffee)
+- 🍹 [juicer](https://home.miot-spec.com/s/juicer)
+- ♨️ [water-heater](https://home.miot-spec.com/s/waterheater) / [hood](https://home.miot-spec.com/s/hood) / [dishwasher](https://home.miot-spec.com/s/dishwasher)
+- 🪟 [curtain](https://home.miot-spec.com/s/curtain) / [window-opener](https://home.miot-spec.com/s/wopener) / [airer](https://home.miot-spec.com/s/airer)
+- 🧹 [vacuum](https://home.miot-spec.com/s/vacuum)
+- 💦 [humidifier](https://home.miot-spec.com/s/humidifier) / [dehumidifier](https://home.miot-spec.com/s/derh)
+- 🍃 [air-monitor](https://home.miot-spec.com/s/airmonitor) / 🪴 [plant-monitor](https://home.miot-spec.com/s/plantmonitor)
+- 🛏 [bed](https://home.miot-spec.com/s/bed) / [blanket](https://home.miot-spec.com/s/blanket) / 😴 [sleep-monitor](https://home.miot-spec.com/s/lunar)
+- 💆 [massager](https://home.miot-spec.com/s/massage) / [magic-touch](https://home.miot-spec.com/s/magic_touch)
+- 🏃 [walking-pad](https://home.miot-spec.com/s/walkingpad)
+- 🚽 [toilet](https://home.miot-spec.com/s/toilet) /️ [towel-rack](https://home.miot-spec.com/s/.tow)
+- 🐱 [pet-feeder](https://home.miot-spec.com/s/feeder) / ⛲ [pet-drinking-fountain](https://home.miot-spec.com/s/pet_waterer) / 🐟 [fish-tank](https://home.miot-spec.com/s/fishbowl)
+- 🦟 [mosquito-dispeller](https://home.miot-spec.com/s/mosq) / [germicidal-lamp](https://home.miot-spec.com/s/s_lamp)
+- 🚘 [rearview-mirror](https://home.miot-spec.com/s/rv_mirror) / [head-up-display](https://home.miot-spec.com/s/hud)
+- ⌚️ [watch](https://home.miot-spec.com/s/watch)
+- 🚶 [motion-sensor](https://home.miot-spec.com/s/motion) / 🧲 [magnet-sensor](https://home.miot-spec.com/s/magnet) [❓️](https://github.com/al-one/hass-xiaomi-miot/issues/100#issuecomment-909031222)
+- 📳 [vibration-sensor](https://home.miot-spec.com/s/vibration)
+- 🌐 [router](https://home.miot-spec.com/s/router) / 🖨 [printer](https://home.miot-spec.com/s/printer)
+
+
+## Services
+
+#### [`xiaomi_miot.set_property`](https://my.home-assistant.io/redirect/developer_call_service/?service=xiaomi_miot.set_property)
+```yaml
+service: xiaomi_miot.set_property
+data:
+  entity_id: camera.isa_hlc7_xxxx
+  field: camera_control.on
+  value: true
+```
+
+#### [`xiaomi_miot.set_miot_property`](https://my.home-assistant.io/redirect/developer_call_service/?service=xiaomi_miot.set_miot_property)
+```yaml
+service: xiaomi_miot.set_miot_property
+data:
+  entity_id: camera.isa_hlc7_xxxx
+  siid: 2
+  piid: 1
+  value: true
+```
+
+#### [`xiaomi_miot.get_properties`](https://my.home-assistant.io/redirect/developer_call_service/?service=xiaomi_miot.get_properties)
+```yaml
+service: xiaomi_miot.get_properties
+data:
+  entity_id: camera.isa_hlc7_1ab7
+  mapping:
+    power:
+      siid: 2
+      piid: 1
+    night:
+      siid: 2
+      piid: 3
+  throw: true # throw result to HA notifications
+```
+
+#### [`xiaomi_miot.call_action`](https://my.home-assistant.io/redirect/developer_call_service/?service=xiaomi_miot.call_action)
+```yaml
+service: xiaomi_miot.call_action
+data:
+  entity_id: vacuum.dreame_p2259_entity_id
+  siid: 4 # vacuum-extend
+  aiid: 1 # start-clean
+  params:
+    - 18 # piid: 1 - work-mode
+    - '{"selects":[[7,1,0,2,1]]}' # piid: 10 - clean-extend-data
+  throw: true # throw result to HA notifications
+```
+
+#### [`xiaomi_miot.send_command`](https://my.home-assistant.io/redirect/developer_call_service/?service=xiaomi_miot.send_command)
+```yaml
+service: xiaomi_miot.send_command
+data:
+  entity_id: switch.your_entity_id
+  method: set_power
+  params:
+    - on
+  throw: true # throw result to HA notifications
+```
+
+#### [`xiaomi_miot.get_token`](https://my.home-assistant.io/redirect/developer_call_service/?service=xiaomi_miot.get_token)
+```yaml
+service: xiaomi_miot.get_token
+data:
+  name: Light # Keyword of device name in Mihome / IP / Model.
+```
+
+#### [`xiaomi_miot.intelligent_speaker`](https://my.home-assistant.io/redirect/developer_call_service/?service=xiaomi_miot.intelligent_speaker)
+```yaml
+service: xiaomi_miot.intelligent_speaker
+data:
+  entity_id: media_player.xiaomi_lx04_xxxx
+  text: Turn on the light
+  execute: true # Execute text directive.
+  silent: true  # Silent execution.
+```
+
+> [More services](https://github.com/al-one/hass-xiaomi-miot/blob/master/custom_components/xiaomi_miot/services.yaml)
 
 
 ## Debug

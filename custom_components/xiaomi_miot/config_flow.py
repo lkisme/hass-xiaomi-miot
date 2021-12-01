@@ -143,17 +143,20 @@ async def get_cloud_filter_schema(hass, user_input, errors, schema=None, via_did
                 grp[v] += 1
                 vls.setdefault(f, {})
                 des = '<empty>' if v == '' else v
-                vls[f][v] = f'{des} ({grp[v]})'
                 if f in ['did']:
+                    if MiotCloud.is_hide(d):
+                        continue
                     dip = d.get('localip')
                     if not dip or d.get('pid') not in ['0', '8', '', None]:
                         dip = d.get('model')
                     vls[f][v] = f'{d.get("name")} ({dip})'
-                if f in ['model']:
+                elif f in ['model']:
                     dnm = f'{d.get("name")}'
                     if grp[v] > 1:
                         dnm += f' * {grp[v]}'
                     vls[f][v] = f'{des} ({dnm})'
+                else:
+                    vls[f][v] = f'{des} ({grp[v]})'
         ies = {
             'exclude': 'Exclude (排除)',
             'include': 'Include (包含)',
@@ -175,6 +178,19 @@ async def get_cloud_filter_schema(hass, user_input, errors, schema=None, via_did
                 vol.Optional(fl, default=ols): cv.multi_select(lst),
             })
         hass.data[DOMAIN]['prev_input'] = user_input
+    tip = ''
+    if user_input.get(CONF_CONN_MODE) == 'local':
+        url = 'https://github.com/al-one/hass-xiaomi-miot/blob/master/' \
+              'custom_components/xiaomi_miot/core/miot_local_devices.py'
+        if user_input.get(CONF_SERVER_COUNTRY) == 'cn':
+            tip = '⚠️ 在本地模式下，所有勾选的设备都将通过本地miot协议连接，如果勾选了不支持本地miot协议的设备，其实体会不可用，' \
+                  f'建议只勾选[支持本地miot的设备]({url})。'
+        else:
+            tip = '⚠️ In the local mode, all checked devices will be connected via the local miot protocol.' \
+                  'If the devices that does not support the local miot protocol are checked,' \
+                  'they will be unavailable. It is recommended to check only ' \
+                  f'[the devices that supports the local miot protocol]({url}).'
+    hass.data[DOMAIN]['placeholders'] = {'tip': tip}
     return schema
 
 
@@ -276,7 +292,7 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             cfg[CONF_CONFIG_VERSION] = ENTRY_VERSION
             _LOGGER.debug('Setup xiaomi cloud: %s', {**cfg, CONF_PASSWORD: '*', 'service_token': '*'})
             return self.async_create_entry(
-                title=f"MiCloud: {cfg.get('user_id')}",
+                title=f"Xiaomi: {cfg.get('user_id')}",
                 data=cfg,
             )
         else:
@@ -285,6 +301,7 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             step_id='cloud_filter',
             data_schema=schema,
             errors=errors,
+            description_placeholders=self.hass.data[DOMAIN].get('placeholders'),
         )
 
     async def async_step_zeroconf(self, discovery_info):
@@ -414,4 +431,5 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
             step_id='cloud_filter',
             data_schema=schema,
             errors=errors,
+            description_placeholders=self.hass.data[DOMAIN].get('placeholders'),
         )

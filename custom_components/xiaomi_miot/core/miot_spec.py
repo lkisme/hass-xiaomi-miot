@@ -1,17 +1,21 @@
 import logging
 import requests
 import platform
+import random
 import time
 import re
+
+from homeassistant.const import *
+from homeassistant.helpers.storage import Store
 
 from .const import (
     DOMAIN,
     TRANSLATION_LANGUAGES,
     STATE_CLASS_MEASUREMENT,
     STATE_CLASS_TOTAL_INCREASING,
+    ENTITY_CATEGORY_CONFIG,
+    ENTITY_CATEGORY_DIAGNOSTIC,
 )
-from homeassistant.const import *
-from homeassistant.helpers.storage import Store
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -227,7 +231,7 @@ class MiotSpec(MiotSpecInstance):
             try:
                 res = await hass.async_add_executor_job(requests.get, url)
                 dat = res.json() or {}
-            except ValueError:
+            except (TypeError, ValueError):
                 dat = {}
             if dat:
                 sdt = {
@@ -267,13 +271,23 @@ class MiotSpec(MiotSpecInstance):
             fnm = fnm.replace(':', '_')
         store = Store(hass, 1, fnm)
         dat = await store.async_load() or {}
+        ptm = dat.pop('_updated_time', 0)
+        now = int(time.time())
+        day = 2
+        if dat.get('services'):
+            day = random.randint(30, 50)
+        if dat and now - ptm > 86400 * day:
+            dat = {}
         if not dat.get('type'):
             try:
                 res = await hass.async_add_executor_job(requests.get, url)
                 dat = res.json() or {}
-                await store.async_save(dat)
-            except ValueError:
-                dat = {}
+            except (TypeError, ValueError):
+                dat = {
+                    'type': typ or 'unknown',
+                }
+            dat['_updated_time'] = now
+            await store.async_save(dat)
         return MiotSpec(dat)
 
     @staticmethod
@@ -303,7 +317,7 @@ class MiotService(MiotSpecInstance):
         super().__init__(dat)
         self.unique_name = f'{self.name}-{self.iid}'
         self.desc_name = self.format_desc_name(self.description, self.name)
-        self.friendly_desc = self.get_translation(self.description)
+        self.friendly_desc = self.get_translation(self.description or self.name)
         spec.services_count.setdefault(self.name, 0)
         spec.services_count[self.name] += 1
         self.properties = {}
@@ -371,6 +385,20 @@ class MiotService(MiotSpecInstance):
         for a in self.actions.values():
             if a.name in args:
                 return a
+        return None
+
+    def search_action(self, *args, **kwargs):
+        for v in self.actions.values():
+            dls = [
+                v.name,
+                v.description,
+                self.desc_name,
+                self.friendly_desc,
+            ]
+            for d in dls:
+                if d not in args:
+                    continue
+                return v
         return None
 
     def unique_prop(self, **kwargs):
@@ -488,7 +516,10 @@ class MiotProperty(MiotSpecInstance):
     def list_value(self, des):
         if des is not None and self.value_range:
             try:
-                val = int(des)
+                if self.range_step() % 1 > 0:
+                    val = float(des)
+                else:
+                    val = int(des)
             except (TypeError, ValueError):
                 val = None
             return val
@@ -686,6 +717,20 @@ class MiotProperty(MiotSpecInstance):
             return 'mdi:coffee'
         return icon
 
+    @property
+    def entity_category(self):
+        cate = None
+        name = self.name
+        names = {
+            'battery_level': ENTITY_CATEGORY_DIAGNOSTIC,
+            'fan_init_power_opt': ENTITY_CATEGORY_CONFIG,
+            'init_power_opt': ENTITY_CATEGORY_CONFIG,
+            'off_delay_time': ENTITY_CATEGORY_CONFIG,
+        }
+        if name in names:
+            cate = names[name]
+        return cate
+
 
 # https://miot-spec.org/miot-spec-v2/spec/actions
 class MiotAction(MiotSpecInstance):
@@ -695,6 +740,7 @@ class MiotAction(MiotSpecInstance):
         super().__init__(dat)
         self.unique_prop = self.service.unique_prop(aiid=self.iid)
         self.full_name = f'{service.name}.{self.name}'
+        self.friendly_desc = self.get_translation(self.description or self.name)
         self.ins = dat.get('in') or []
         self.out = dat.get('out') or []
 
@@ -712,7 +758,10 @@ class MiotAction(MiotSpecInstance):
     def in_params(self, params: list):
         pms = []
         for pid in self.ins:
-            val = params.pop(0)
+            try:
+                val = params.pop(0)
+            except IndexError:
+                break
             if not (isinstance(val, dict) and 'piid' in val):
                 val = {
                     'piid': pid,
@@ -732,6 +781,13 @@ class MiotAction(MiotSpecInstance):
         if len(kls) == len(out):
             return dict(zip(kls, out))
         return None
+
+    @property
+    def translation_keys(self):
+        return [
+            '_globals',
+            self.service.name,
+        ]
 
 
 class MiotResults:
